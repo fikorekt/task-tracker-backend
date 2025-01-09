@@ -3,13 +3,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+dotenv.config();
 const http = require('http'); // HTTP sunucusu
 const { Server } = require('socket.io'); // Socket.IO
 
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
-
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app); // HTTP sunucusunu oluştur
@@ -22,7 +21,10 @@ const io = new Server(server, {
 
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:3000", "https://task-tracker-backend-qgah.onrender.com"],
+  origin: [
+    process.env.FRONTEND_URL || "http://localhost:3000",
+    "https://task-tracker-backend-qgah.onrender.com",
+  ],
   methods: ["GET", "POST", "PATCH", "DELETE"],
   credentials: true,
 }));
@@ -46,17 +48,21 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 
 // MongoDB Bağlantısı
-const isProduction = process.env.NODE_ENV === 'production';
-const mongoUri = isProduction
-  ? process.env.MONGODB_URI_PRODUCTION
-  : process.env.MONGODB_URI;
+const mongoUri = process.env.MONGODB_URI; // MongoDB URI'si .env dosyasından alınır
+if (!mongoUri) {
+  console.error('MongoDB URI tanımlanmamış. Lütfen .env dosyanızı kontrol edin.');
+  process.exit(1); // Uygulama, MongoDB bağlantısı olmadan çalışamaz
+}
 
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-  .then(() => console.log('MongoDB\'ye başarıyla bağlandı'))
-  .catch((err) => console.error('MongoDB bağlantı hatası:', err));
+  .then(() => console.log('MongoDB Atlas\'a başarıyla bağlandı'))
+  .catch((err) => {
+    console.error('MongoDB bağlantı hatası:', err);
+    process.exit(1); // Bağlantı hatası durumunda uygulamayı durdur
+  });
 
 // Sunucuyu başlat
 const PORT = process.env.PORT || 3000;
