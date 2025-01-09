@@ -54,10 +54,7 @@ if (!mongoUri) {
   process.exit(1); // Uygulama, MongoDB bağlantısı olmadan çalışamaz
 }
 
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(mongoUri)
   .then(() => console.log('MongoDB Atlas\'a başarıyla bağlandı'))
   .catch((err) => {
     console.error('MongoDB bağlantı hatası:', err);
