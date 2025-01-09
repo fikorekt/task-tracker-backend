@@ -22,7 +22,7 @@ const io = new Server(server, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000", // Frontend URL'si
+  origin: ["http://localhost:3000", "https://task-tracker-backend-qgah.onrender.com"],
   methods: ["GET", "POST", "PATCH", "DELETE"],
   credentials: true,
 }));
