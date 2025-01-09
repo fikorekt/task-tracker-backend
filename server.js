@@ -15,13 +15,17 @@ const app = express();
 const server = http.createServer(app); // HTTP sunucusunu oluştur
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Frontend URL'si
-    methods: ["GET", "POST"],
+    origin: process.env.FRONTEND_URL || "http://localhost:3000", // Frontend URL'si
+    methods: ["GET", "POST", "PATCH", "DELETE"],
   },
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:3000", // Frontend URL'si
+  methods: ["GET", "POST", "PATCH", "DELETE"],
+  credentials: true,
+}));
 app.use(express.json());
 
 // Socket.IO entegrasyonu
@@ -42,7 +46,15 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 
 // MongoDB Bağlantısı
-mongoose.connect(process.env.MONGODB_URI)
+const isProduction = process.env.NODE_ENV === 'production';
+const mongoUri = isProduction
+  ? process.env.MONGODB_URI_PRODUCTION
+  : process.env.MONGODB_URI;
+
+mongoose.connect(mongoUri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log('MongoDB\'ye başarıyla bağlandı'))
   .catch((err) => console.error('MongoDB bağlantı hatası:', err));
 
